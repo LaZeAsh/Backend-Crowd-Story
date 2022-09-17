@@ -3,7 +3,8 @@ dotenv.config();
 import express from 'express';
 const app = express();
 import { mongo } from './database';
-import userModel from './database/models/User';
+import User from "./database/models/user"
+import Story from "./database/models/Story";
 
 //Connecting to the DB
 mongo();
@@ -11,68 +12,62 @@ mongo();
 app.use(express.json());
 
 app.get('/stories', async(req, res) => {  
-  // let ID = req.body.ID;
+  const { id } = req.query;
+  // /stories?id=whateverthefuck
+  if (id){
+    // pull one story
+  }else{
+    // pull all stories
+  }
   res.send({ success: true })
 });
 
 app.post('/story/create', async(req, res) => {
-  let name: string = req.body.name;
-  // console.log(req.body);
-  await (await userModel.create({ name: name })).save();
-  await userModel.findOne({ name: name }).then((doc) => {
-    if(!doc) return;
-    res.send(doc.id);
+  const { userName, title, lineContent } = req.body;
+
+  const story = await Story.create({
+    likes: 0,
+    title,
+    lines: [
+      {
+        userName,
+        timestamp: new Date(),
+        content: lineContent
+      }
+    ]
   })
+
+  await story.save();
+
+  const user = await User.findOne({ userName });
+
+  if (!user){
+    res.send({ success: true, message: `user with username: ${userName} not found!` }).status(404);
+  } else {
+    user.update({ $push: story._id });
+  }
+
+  res.send({ success: true, payload: story });
 });
 
-app.get('/story/get', async(req, res) => {
 
-});
+app.post("/user/create", async (req, res) => {
+  const { userName } = req.body;
 
+  const user = await User.create({
+    userName,
+    participatingStoryIDs: [],
+    favouriteStoryIDs: []
+  })
 
-// axios.post("", Object)
+  await user.save();
 
-// Object = {
-//   name: ""
-//   lines: []
-
-// }
-
-// app.post('/create', async (req, res) => {
-  
-//   let userID: string = req.body.ID; // userIDs
-//   await userModel.create({ })
-// });
-
-app.post('/append', async(req, res) => {
-  let userID: string = req.body.userID;
-  // let name: string = req.body.name;
-  // let line: string = req.body.line;
-  let array;
-  // await userModel.findOne({ name: name }).then((doc) => {
-  //   if(!doc) return;
-  //   array = doc.lines;
-  // })
-  //@ts-ignore
-  array.append(line);
-  await userModel.findOneAndUpdate({ name: name }, { lines: array });
-  return true; // Return true only if line appended
-});
-
-// app.get('/getlines/:name', async(req, res) => {
-//   let name: string = req.body.name;
-//   userModel.findOne({ name: name }).then((doc) => {
-//     if(!doc) return;
-//     return doc.lines; // Returns the lines when given the name
-//   })
-
-//   return null; // Null if doc doesn't exist
-// })
-
+  res.send({ success: true, payload: user });
+})
 
 
 app.listen(process.env.PORT, () => {
-  console.log('API Running')
+  console.log('API Running at http://localhost:' + process.env.PORT )
 });
 
 

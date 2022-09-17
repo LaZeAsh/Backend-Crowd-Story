@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose';
 
 const UserSchema = new Schema({
-  name: {
+  userName: {
     type: String,
     required: true
   },
