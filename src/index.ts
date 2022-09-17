@@ -3,7 +3,7 @@ dotenv.config();
 import express from 'express';
 const app = express();
 import { mongo } from './database';
-import userModel from './database/models/user';
+import userModel from './database/models/User';
 
 //Connecting to the DB
 mongo();

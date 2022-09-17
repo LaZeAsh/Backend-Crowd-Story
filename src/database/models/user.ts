@@ -1,24 +1,20 @@
 import { Schema, model } from 'mongoose';
 
-const schema = new Schema({
+const UserSchema = new Schema({
   name: {
     type: String,
     required: true
   },
-  // timeStamp: {
-  //   type: Number,
-  //   required: true
-  // },
   participatingStoryIDs: {
     type: Array<String>,
     required: false
   },
-  favourtieStoryIDs: {
+  favouriteStoryIDs: {
     type: Array<String>,
     required: false
   }
 }, {versionKey: false});
 
-const userModel = model('user', schema, 'user');
+const User = model('user', UserSchema, 'user');
 
-export default userModel;
+export default User;
