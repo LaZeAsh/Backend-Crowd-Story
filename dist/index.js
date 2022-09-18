@@ -15,14 +15,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const express_1 = __importDefault(require("express"));
-const app = express_1.default();
+const app = (0, express_1.default)();
 const database_1 = require("./database");
-const user_1 = __importDefault(require("./database/models/user"));
+const User_1 = __importDefault(require("./database/models/User"));
 const Story_1 = __importDefault(require("./database/models/Story"));
 const response_1 = require("./utils/response");
+const cors_1 = __importDefault(require("cors"));
 //Connecting to the DB
-database_1.mongo();
+(0, database_1.mongo)();
 app.use(express_1.default.json());
+app.use((0, cors_1.default)());
 app.get('/stories', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.query;
     // /stories?id=whateverthefuck
@@ -30,18 +32,18 @@ app.get('/stories', (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         // pull one story
         const story = yield Story_1.default.findById(id);
         if (!story) {
-            response_1.sendResponse(res, "error finding story with id: " + id, false, 404);
+            (0, response_1.sendResponse)(res, "error finding story with id: " + id, false, 404);
         }
-        response_1.sendResponse(res, story);
+        (0, response_1.sendResponse)(res, story);
     }
     else {
         // pull all stories
         const stories = yield Story_1.default.find({});
-        console.log(stories);
+        //console.log(stories);
         if (!stories) {
-            response_1.sendResponse(res, "error finding stories", false, 404);
+            (0, response_1.sendResponse)(res, "error finding stories", false, 404);
         }
-        response_1.sendResponse(res, stories);
+        (0, response_1.sendResponse)(res, stories);
     }
 }));
 app.post('/story/create', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -58,49 +60,53 @@ app.post('/story/create', (req, res) => __awaiter(void 0, void 0, void 0, functi
         ]
     });
     yield story.save();
-    const user = yield user_1.default.findOne({ userName });
+    const user = yield User_1.default.findOne({ userName });
     if (!user) {
         res.send({ success: true, message: `user with username: ${userName} not found!` }).status(404);
     }
     else {
-        user.update({ $push: story._id });
+        // user.update({ $push: story._id });
+        user.participatingStoryIDs.push(story._id.toString());
+        yield user.save();
     }
-    response_1.sendResponse(res, story);
+    (0, response_1.sendResponse)(res, story);
     // res.send({ success: true, payload: story });
 }));
 app.post("/user/create", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userName } = req.body;
-    const user = yield user_1.default.create({
+    const user = yield User_1.default.create({
         userName,
         participatingStoryIDs: [],
         favouriteStoryIDs: []
     });
     yield user.save();
     // res.send({ success: true, payload: user });
-    response_1.sendResponse(res, user);
+    (0, response_1.sendResponse)(res, user);
 }));
 app.post("/story/add-line", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userName, lineContent, storyId } = req.body;
-    const user = yield user_1.default.find({ userName });
+    const user = yield User_1.default.find({ userName });
     if (!user) {
-        response_1.sendResponse(res, "error finding user with username: " + userName, false, 404);
+        (0, response_1.sendResponse)(res, "error finding user with username: " + userName, false, 404);
     }
     const story = yield Story_1.default.findById(storyId);
     if (!story) {
-        response_1.sendResponse(res, "error finding story", false, 404);
+        (0, response_1.sendResponse)(res, "error finding story", false, 404);
     }
     else {
-        story.update({
-            lines: {
-                $push: {
-                    userName,
-                    timestamp: new Date(),
-                    content: lineContent
-                }
-            }
-        });
+        story.lines.push({ userName, timestamp: new Date(), content: lineContent });
+        // await story.updateOne({
+        //     $push: {
+        //       lines: {
+        //         userName,
+        //         timestamp: new Date(),
+        //         content: lineContent
+        //       }
+        //     }
+        // })
+        //console.log(story.lines);
         yield story.save();
-        response_1.sendResponse(res, story);
+        (0, response_1.sendResponse)(res, story);
     }
 }));
 app.listen(process.env.PORT, () => {

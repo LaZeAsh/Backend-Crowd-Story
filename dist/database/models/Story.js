@@ -18,5 +18,5 @@ const StorySchema = new mongoose_1.Schema({
     timestamp: Number,
     tags: [String]
 });
-const Story = mongoose_1.model("story", StorySchema, "story");
+const Story = (0, mongoose_1.model)("story", StorySchema, "story");
 exports.default = Story;
