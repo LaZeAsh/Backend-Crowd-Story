@@ -14,27 +14,22 @@ mongo();
 app.use(express.json());
 app.use(cors());
 
-// app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested, Content-Type, Accept Authorization");
-
-//   if (req.method === "OPTIONS"){
-//     res.header("Access-Control-Allow-Methods", "POST, PUT, PATCH, GET, DELETE");
-//     return res.status(200).json({})
-//   }
-//   next();
-// })
-
 app.get('/stories', async (req: Request, res: Response) : Promise<void> => {  
   const { id } = req.query;
   // /stories?id=whateverthefuck
   if (id){
     // pull one story
-    const story = await Story.findById(id);
-    if (!story){
-      sendResponse(res, "error finding story with id: " + id, false, 404);
+    try {
+      const story = await Story.findById(id);
+      sendResponse(res, story);
+    } catch (error: any) {
+      sendResponse(res, error.message, false, 400);
     }
-    sendResponse(res, story);
+    // const story = await Story.findById(id);
+    // if (!story){
+    //   sendResponse(res, "error finding story with id: " + id, false, 404);
+    // }
+    // sendResponse(res, story);
   }else{
     // pull all stories
     const stories = await Story.find({});
@@ -109,17 +104,7 @@ app.post("/story/add-line", async (req: Request, res: Response) : Promise<void> 
     sendResponse(res, "error finding story", false, 404);
   } else {
     story.lines.push({ userName, timestamp: new Date(), content: lineContent })
-    // await story.updateOne({
-    //     $push: {
-    //       lines: {
-    //         userName,
-    //         timestamp: new Date(),
-    //         content: lineContent
-    //       }
-    //     }
-    // })
-
-    //console.log(story.lines);
+  
   
     await story.save();
 
