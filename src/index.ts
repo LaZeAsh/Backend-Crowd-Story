@@ -3,7 +3,7 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 const app = express();
 import { mongo } from './database';
-import User from "./database/models/User"
+import User from "./database/models/user"
 import Story from "./database/models/Story";
 import { sendResponse } from "./utils/response";
 import cors from "cors";
