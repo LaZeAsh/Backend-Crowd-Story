@@ -12,7 +12,7 @@ mongo();
 
 app.use(express.json());
 
-app.get('/stories', async(req: Request, res: Response) : Promise<void> => {  
+app.get('/stories', async (req: Request, res: Response) : Promise<void> => {  
   const { id } = req.query;
   // /stories?id=whateverthefuck
   if (id){
@@ -31,16 +31,15 @@ app.get('/stories', async(req: Request, res: Response) : Promise<void> => {
     }
 
     sendResponse(res, stories);
-  }
-  //res.send({ success: true })
+  } 
 });
 
-app.post('/story/create', async(req, res) => {
+app.post('/story/create', async (req: Request, res: Response) : Promise<void> => {
   const { userName, title, lineContent } = req.body;
 
   const story = await Story.create({
     likes: 0,
-    title,
+    title: title ? title : "",
     lines: [
       {
         userName,
@@ -78,6 +77,38 @@ app.post("/user/create", async (req, res) => {
 
   // res.send({ success: true, payload: user });
   sendResponse(res, user);
+})
+
+app.post("/story/add-line", async (req: Request, res: Response) : Promise<void> => {
+  const { userName, lineContent, storyId } = req.body;
+
+  const user = await User.find({ userName });
+
+  if (!user){
+    sendResponse(res, "error finding user with username: " + userName, false, 404);
+  }
+
+  const story = await Story.findById(storyId);
+
+  if (!story){
+    sendResponse(res, "error finding story", false, 404);
+  } else {
+    story.update({
+      lines: {
+        $push: {
+          userName,
+          timestamp: new Date(),
+          content: lineContent
+        }
+      }
+    })
+  
+    await story.save();
+
+    sendResponse(res, story);
+  }
+  
+
 })
 
 
