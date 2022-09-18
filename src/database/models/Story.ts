@@ -8,15 +8,23 @@ interface Line{
   thumbnail?: string
 }
 
+const LineSchema = new Schema({
+  userName: String,
+  timestamp: Number,
+  content: String,
+  specialWord: { type: String, required: false },
+  thumbnail: { type: String, required: false }
+})
+
 const StorySchema = new Schema({
-  likes: Number,
-  title: String,
+  likes: { type: Number },
+  title: { type: String },
   lines: {
-    type: Array<Line>,
+    type: [LineSchema],
     required: true
   },
   timestamp: Number,
-  tags: Array<string>
+  tags: [String]
 })
 
 const Story = model("story", StorySchema, "story");

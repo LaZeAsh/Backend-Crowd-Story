@@ -6,11 +6,11 @@ const UserSchema = new Schema({
     required: true
   },
   participatingStoryIDs: {
-    type: Array<String>,
+    type: [String],
     required: false
   },
   favouriteStoryIDs: {
-    type: Array<String>,
+    type: [String],
     required: false
   }
 }, {versionKey: false});
