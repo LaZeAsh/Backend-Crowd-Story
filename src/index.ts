@@ -3,14 +3,16 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 const app = express();
 import { mongo } from './database';
-import User from "./database/models/user"
+import User from "./database/models/User"
 import Story from "./database/models/Story";
 import { sendResponse } from "./utils/response";
+import cors from "cors";
 
 //Connecting to the DB
 mongo();
 
 app.use(express.json());
+app.use(cors());
 
 app.get('/stories', async (req: Request, res: Response) : Promise<void> => {  
   const { id } = req.query;
@@ -25,7 +27,7 @@ app.get('/stories', async (req: Request, res: Response) : Promise<void> => {
   }else{
     // pull all stories
     const stories = await Story.find({});
-    console.log(stories);
+    //console.log(stories);
     if (!stories){
       sendResponse(res, "error finding stories", false, 404);
     }
@@ -56,7 +58,9 @@ app.post('/story/create', async (req: Request, res: Response) : Promise<void> =>
   if (!user){
     res.send({ success: true, message: `user with username: ${userName} not found!` }).status(404);
   } else {
-    user.update({ $push: story._id });
+    // user.update({ $push: story._id });
+    user.participatingStoryIDs.push(story._id.toString());
+    await user.save();
   }
 
   sendResponse(res, story);
@@ -93,15 +97,18 @@ app.post("/story/add-line", async (req: Request, res: Response) : Promise<void> 
   if (!story){
     sendResponse(res, "error finding story", false, 404);
   } else {
-    story.update({
-      lines: {
-        $push: {
-          userName,
-          timestamp: new Date(),
-          content: lineContent
-        }
-      }
-    })
+    story.lines.push({ userName, timestamp: new Date(), content: lineContent })
+    // await story.updateOne({
+    //     $push: {
+    //       lines: {
+    //         userName,
+    //         timestamp: new Date(),
+    //         content: lineContent
+    //       }
+    //     }
+    // })
+
+    //console.log(story.lines);
   
     await story.save();
 
